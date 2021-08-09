@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <script src="//api.bitrix24.com/api/v1/"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <style>
+        .media {
+            display: flex;
+        }
+        .view {
+            width: 25%;
+            padding: 10px;
+        }
+        .view img,
+        .popup img {
+            max-width: 100%;
+        }
+        .popup {
+            display: none;
+            overflow: scroll;
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            height: 500px;
+        }
+        .close {
+            color: white;
+            float: right;
+            padding: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<h1 align=center>ВЫБОР ПОДПИСАНТА ИЗ КОНТАКТОВ СДЕЛКИ</h1>
+<body>
+<div>
+    <table width="1200" border="1" cellpadding="5" cellspacing="2" class="media">
+        <tr>
+            <td style="background: #cacdc3" class="view">
+                <img src="https://spa-bitrix.ru/userfield/crestapp/img/deal_card.png" alt="deal_card" width="300" height="200">
+            </td>
+            <td style="background: #0cccf8" class="view">
+                <img src="https://spa-bitrix.ru/userfield/crestapp/img/button_select_field.png" alt="button_select_field" width="300" height="200">
+            </td>
+            <td style="background: #33d9bf" class="view">
+                <img src="https://spa-bitrix.ru/userfield/crestapp/img/signerField.png" alt="signerField" width="300" height="200">
+            </td>
+            <td style="background: #b5ff00" class="view">
+                <img src="https://spa-bitrix.ru/userfield/crestapp/img/comleted.png" alt="comleted" width="300" height="200">
+            </td>
+        </tr>
+        <tr>
+            <td style="background: #cacdc3">
+                <p>1. Откройте любую карточку сделки</p>
+            </td>
+            <td style="background: #0cccf8">
+                <p>2. Под любым разделом карточки сделки нажмите на кнопку "Выбрать поле"</p>
+            </td>
+            <td style="background: #33d9bf">
+                <p>3. В выпадающем списке полей найдите поле "Подписант" и нажмите на него для демонстрации поля в карточке сделки.</p>
+            </td>
+            <td style="background: #b5ff00">
+                <p>4. После предыдущих действий у вас в карточке появилось новое поле, в котором вы уже можете выбирать подписанта из привязанных к сделке контактов. Но для того, что бы все пользователи портала смогли так же воспользоваться данной функцией нажмите на "Общий вид карточки" в самом низу карточки сделки. В выпадающем списке нажмите на "Установить общую карточку для всех пользователей". После данных действий у всех пользователей появиться поле в карточке сделки и они так же смогут выбирать подписанта.</p>
+            </td>
+        </tr>
+    </table>
+</div>
+<div>
+    <h3 align=center>После всех описанных действий вы  и ваши сотрудники, можете использовать функционал установленного приложения</h3>
+    <h2 align=center>Удачных продаж!</h2>
+</div>
+<div class="popup">
+    <div class="close" style="background: black">X</div>
+    <img src="" alt="" />
+</div>
+</body>
+<script>
+    $('.view img').click(function() {
+        let src = $(this).attr('src');
+        $('.popup img').attr('src',src);
+        $('.popup').fadeIn();
+    });
+    $('.close').click(function() {
+        $('.popup').fadeOut();
+    });
+
+    BX24.init(async function () {
+        const callBXMethod = (method, params) => new Promise((resolve, reject) => {
+            BX24.callMethod(
+                method,
+                params,
+                function (result) {
+                    if (result.error()) {
+                        reject(result.error())
+                    } else {
+                        resolve(result.data())
+                    }
+                }
+            )
+        })
+
+        const appInfo = await callBXMethod('app.info', {})
+        console.log({appInfo})
+        if (appInfo['INSTALLED']) {
+            const userfieldTypeList = await callBXMethod('userfieldtype.list', {})
+            console.log({userfieldTypeList})
+            const needFieldType = userfieldTypeList.filter((e) => {
+                return e['USER_TYPE_ID'] === 'signer'
+            })
+            console.log({needFieldType})
+            if (needFieldType.length > 0) {
+                console.log('тип поля signer уже установлен на этом портале!')
+            } else {
+                const userfieldtype = await callBXMethod('userfieldtype.add', {
+                    USER_TYPE_ID: 'signer',
+                    HANDLER: 'https://spa-bitrix.ru/userfield/crestapp/field/handler.php',
+                    TITLE: 'signer',
+                    DESCRIPTION: 'Поле выбора контрагента из карточки сделки для документов'
+                })
+                console.log({userfieldtype})
+            }
+            const userfieldList = await callBXMethod('crm.deal.userfield.list', {})
+            const needUserField = userfieldList.filter((e) => {
+                return e['FIELD_NAME'] === 'UF_CRM_SIGNER_CLIENT'
+            })
+            console.log({needUserField})
+            if (needUserField.length > 0) {
+                console.log('поле UF_CRM_SIGNER_CLIENT уже существует!')
+            } else {
+                const userfield = await callBXMethod('crm.deal.userfield.add', {
+                    "FIELD_NAME": "UF_SIGNER_CLIENT",
+                    "EDIT_FORM_LABEL": "Подписант",
+                    "LIST_COLUMN_LABEL": "Подписант",
+                    "USER_TYPE_ID": "signer",
+                    "XML_ID": "UF_SIGNER_CLIENT",
+                })
+                console.log({userfield})
+            }
+        }
+    });
+    //добавить при удалении приложения удаление всего что было создано
+
+</script>
+</html>
