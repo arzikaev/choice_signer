@@ -335,13 +335,17 @@ class CRest
      * @var $arSettings array settings application
      */
 
-    private static function setAppSettings($arSettings, $isInstall = false)
+    private static function setAppSettings($arSettings, $isInstall = false, $user = [])
     {
-        //self::writeToLog($arSettings, 'set app setting: arSettings');
+        if (!empty($user)) $arSettings['status'] = $user['STATUS'];
+        if (!empty($user)) $arSettings['admin_name'] = $user['ADMINNAME'];
+        if (!empty($user)) $arSettings['admin_email'] = $user['ADMINEMAIL'];
+        if (!empty($user)) $arSettings['admin_phone'] = $user['ADMINPHONE'];
+        self::writeToLog($arSettings, 'set app setting: arSettings');
         $return = false;
         if (is_array($arSettings)) {
             $oldData = static::getAppSettings($arSettings['domain']);
-            //self::writeToLog($oldData, 'set app setting: oldData');
+            self::writeToLog($oldData, 'set app setting: oldData');
 
             if ($isInstall != true && !empty($oldData) && is_array($oldData)) {
                 $arSettings = array_merge($oldData, $arSettings);
@@ -369,7 +373,7 @@ class CRest
             //self::writeToLog($domain, 'get app setting: domain');
             if (!empty($domain)) {
                 $mysqli = new mysqli(HOST_NAME, USER_NAME, USER_PASSWORD, DATA_BASE);
-                $sql = "SELECT `PORTAL`, `ACCESS_TOKEN`, `EXPIRESS_IN`, `REFRESH_TOKEN`, `APLICATION_TOKEN`, `CLIENT_ENDPOINT` FROM `INSTALLER` instaler WHERE instaler.PORTAL = '$domain'";
+                $sql = "SELECT `PORTAL`, `ACCESS_TOKEN`, `EXPIRESS_IN`, `REFRESH_TOKEN`, `APLICATION_TOKEN`, `CLIENT_ENDPOINT`, `STATUS`, `ADMINNAME`, `ADMINEMAIL`, `ADMINPHONE` FROM `INSTALLER` instaler WHERE instaler.PORTAL = '$domain'";
                 $res = $mysqli->query($sql);
                 $data = $res->fetch_assoc();
                 //self::writeToLog($data, 'get app setting data');
@@ -385,12 +389,10 @@ class CRest
                 'client_endpoint' => $data['CLIENT_ENDPOINT'],
                 'C_REST_CLIENT_ID' => C_REST_CLIENT_ID,
                 'C_REST_CLIENT_SECRET' => C_REST_CLIENT_SECRET,
-                'expires' => '1622217674',
-                'scope' => 'app',
-                'server_endpoint' => 'https://oauth.bitrix.info/rest/',
-                'status' => 'L',
-                'member_id' => '7cb192c0055033b2be1cf60301976ccb',
-                'user_id' => 3108
+                'status' => $data['STATUS'],
+                '$admin_name' => $data['ADMINNAME'],
+                '$admin_email' => $data['ADMINEMAIL'],
+                '$admin_phone' => $data['ADMINPHONE']
             ];
             //self::writeToLog($arData, 'get app setting return data');
 
@@ -496,6 +498,44 @@ class CRest
      * @return boolean is successes save data for setSettingData()
      * @var $arSettings array settings application
      */
+    public static function updateAppSettings($domain, $user)
+    {
+            self::writeToLog($domain, 'update app setting: domain');
+            if (!empty($domain)) {
+                $mysqli = new mysqli(HOST_NAME, USER_NAME, USER_PASSWORD, DATA_BASE);
+                $sql = "SELECT `PORTAL`, `ACCESS_TOKEN`, `EXPIRESS_IN`, `REFRESH_TOKEN`, `APLICATION_TOKEN`, `CLIENT_ENDPOINT`, `STATUS`, `ADMINNAME`, `ADMINEMAIL`, `ADMINPHONE` FROM `INSTALLER` instaler WHERE instaler.PORTAL = '$domain'";
+                $res = $mysqli->query($sql);
+                $data = $res->fetch_assoc();
+                self::writeToLog($data, 'get app setting data');
+            }
+            // $arData = static::getSettingData();//вместо функции создать массив полученный из sql базы
+            //  self::writeToLog($arData,'return data');
+          self::writeToLog($admin_name,'admin_name');
+
+        $arData = [
+                'access_token' => $data['ACCESS_TOKEN'],
+                'expires_in' => $data['EXPIRESS_IN'],
+                'application_token' => $data['APLICATION_TOKEN'],
+                'refresh_token' => $data['REFRESH_TOKEN'],
+                'domain' => 'oauth . bitrix . info',
+                'client_endpoint' => $data['CLIENT_ENDPOINT'],
+                'C_REST_CLIENT_ID' => C_REST_CLIENT_ID,
+                'C_REST_CLIENT_SECRET' => C_REST_CLIENT_SECRET,
+                'status' => $user['STATUS'],
+                'admin_name' => $user['ADMINNAME'],
+                'admin_email' => $user['ADMINEMAIL'],
+                'admin_phone' => $user['ADMINPHONE']
+            ];
+        $return = static::setSettingData($arData);
+
+        self::writeToLog($arData, 'get app setting return data');
+
+            if (!empty($arData['access_token'])) {
+                return $return;
+            } else {
+                return false;
+            }
+        }
 
     protected static function setSettingData($arSettings)
     {
@@ -511,22 +551,24 @@ class CRest
             $refreshToken = $arSettings['refresh_token'];
             $applicationToken = $arSettings['application_token'];
             $clientEndpoint = $arSettings['client_endpoint'];
-            $clientID = '';
-            $expires = '';
-            $scope = '';
-            $status = '';
-            $member_id = '';
-            $user_id = '';
+            !empty($arSettings['status'])? $status = $arSettings['status'] : $status = 'false';
+            !empty($arSettings['status'])? $admin_name = $arSettings['admin_name'] : $admin_name = 'not';
+            !empty($arSettings['status'])? $admin_phone = $arSettings['admin_phone'] : $admin_phone = 'not';
+            !empty($arSettings['status'])? $admin_email = $arSettings['admin_email'] : $admin_email = 'not';
 
 
-            $sql = "INSERT INTO `INSTALLER`(`PORTAL`, `ACCESS_TOKEN`, `EXPIRESS_IN`, `REFRESH_TOKEN`, `APLICATION_TOKEN`, `CLIENT_ENDPOINT`) 
+            $sql = "INSERT INTO `INSTALLER`(`PORTAL`, `ACCESS_TOKEN`, `EXPIRESS_IN`, `REFRESH_TOKEN`, `APLICATION_TOKEN`, `CLIENT_ENDPOINT`, `STATUS`, `ADMINNAME`, `ADMINEMAIL`, `ADMINPHONE`) 
 VALUES (
         '$domain',
         '$accesToken',
         '$expiresIn',
         '$refreshToken',
         '$applicationToken', 
-        '$clientEndpoint'
+        '$clientEndpoint',
+        '$status',
+        '$admin_name',
+        '$admin_email',
+        '$admin_phone'
         ) 
 ON DUPLICATE KEY UPDATE 
     `PORTAL` = '$domain', 
@@ -534,7 +576,11 @@ ON DUPLICATE KEY UPDATE
     `EXPIRESS_IN` = '$expiresIn', 
     `REFRESH_TOKEN` = '$refreshToken', 
     `APLICATION_TOKEN` = '$applicationToken', 
-    `CLIENT_ENDPOINT` = '$clientEndpoint'
+    `CLIENT_ENDPOINT` = '$clientEndpoint',
+    `STATUS` = '$status',
+    `ADMINNAME` = '$admin_name',
+    `ADMINEMAIL` = '$admin_email',
+    `ADMINPHONE` = '$admin_phone'
 ";
             $res = $mysqli->query($sql);
         }

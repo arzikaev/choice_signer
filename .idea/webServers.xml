@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="88ca0403-2041-4e35-8d68-329e098b1e9a" name="spa-bitrix">
+        <fileTransfer rootFolder="/var/www/html" accessType="SFTP" host="217.25.90.198" port="22" sshConfigId="51c13264-383c-4a1a-b6d7-646f77414dd2" sshConfig="root@217.25.90.198:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

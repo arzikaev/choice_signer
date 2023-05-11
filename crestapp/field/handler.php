@@ -35,7 +35,7 @@ if (!empty($_REQUEST['PLACEMENT_OPTIONS'])) {
         $contactsData[] = $contactInfo;
     }
 } else {
-   // CRest::writeToLog($_REQUEST, 'request');
+    CRest::writeToLog($_REQUEST, 'request');
 
     $items = [];
     foreach ($_REQUEST['items'] as $e) {
@@ -46,9 +46,9 @@ if (!empty($_REQUEST['PLACEMENT_OPTIONS'])) {
         ['id' => $_REQUEST['id'], 'items' => $items],
         $_REQUEST['domen']
     );
-    //CRest::writeToLog($_REQUEST, 'request');
-    //CRest::writeToLog($items, 'items');
-    //CRest::writeToLog($result, 'result');
+    CRest::writeToLog($_REQUEST, 'request');
+    CRest::writeToLog($items, 'items');
+    CRest::writeToLog($result, 'result');
 
 }
 

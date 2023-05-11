@@ -1,10 +1,10 @@
 <?php
-define('C_REST_CLIENT_ID','***');//Application ID
-define('C_REST_CLIENT_SECRET','***');//Application key
-define('HOST_NAME','***');//hostname to sql
-define('USER_NAME','***');//user name to sql
-define('USER_PASSWORD','***');//user pass to sql
-define('DATA_BASE','***');//data base to sql
+define('C_REST_CLIENT_ID','app.60a3c39e4dccc7.62870581');//Application ID
+define('C_REST_CLIENT_SECRET','mja1B7rySMEnVDkfft1LvoaZtj7czYMITberwu3n2cqWUY1bT5');//Application key
+define('HOST_NAME','localhost');//hostname to sql
+define('USER_NAME','root');//user name to sql
+define('USER_PASSWORD','123456789');//user pass to sql
+define('DATA_BASE','bitrix24');//data base to sql
 // or
 //define('C_REST_WEB_HOOK_URL','https://rest-api.bitrix24.com/rest/1/doutwqkjxgc3mgc1/');//url on creat Webhook
 
